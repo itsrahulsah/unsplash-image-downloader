@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HackIT Demo</string>
+    <string name="wallpaper">wallpaper</string>
+    <string name="download_button">Download button</string>
+</resources>
