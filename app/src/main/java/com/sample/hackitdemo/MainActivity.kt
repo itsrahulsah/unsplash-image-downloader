@@ -1,10 +1,14 @@
 package com.sample.hackitdemo
 
-import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.Constraints
 import androidx.work.Data
@@ -19,7 +23,6 @@ import com.sample.hackitdemo.databinding.ActivityMainBinding
 import com.sample.hackitdemo.network.models.Image
 import com.sample.hackitdemo.workmanager.DownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -42,16 +45,23 @@ class MainActivity : AppCompatActivity() {
         viewModel.pagingImages.observe(this){
             adapter.submitData(this.lifecycle,it)
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.POST_NOTIFICATIONS),100)
+        }
+        if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.P){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),101)
+        }
     }
 
 
+    @SuppressLint("MissingPermission")
     private fun startDownloadingWallpaper(wallpaper: Image){
         val workManager = WorkManager.getInstance(this)
         val data = Data.Builder()
 
         data.apply {
-            putString(DownloadWorker.FileParams.KEY_FILE_NAME, "${wallpaper.description}.jpg")
-            putString(DownloadWorker.FileParams.KEY_IMAGE_URL, wallpaper.urls.full)
+            putString(DownloadWorker.FileParams.KEY_FILE_NAME, "${wallpaper.id}.jpg")
+            putString(DownloadWorker.FileParams.KEY_IMAGE_URL, wallpaper.links.download)
         }
 
         val constraints = Constraints.Builder()
@@ -80,9 +90,14 @@ class MainActivity : AppCompatActivity() {
                         }
                         WorkInfo.State.FAILED -> {
                             showSnackbar("Downloading failed!")
+                            val failedBuilder = NotificationCompat.Builder(this,
+                                DownloadWorker.NotificationConstants.CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                .setContentTitle("Downloading failed!")
+                            NotificationManagerCompat.from(this).notify(DownloadWorker.NotificationConstants.NOTIFICATION_ID,failedBuilder.build())
                         }
-                        WorkInfo.State.RUNNING ->{
-
+                        WorkInfo.State.ENQUEUED ->{
+                            showSnackbar("Added to download queue....")
                         }
                         else -> {
 
