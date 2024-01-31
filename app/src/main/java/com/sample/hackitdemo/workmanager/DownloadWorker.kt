@@ -76,6 +76,7 @@ class DownloadWorker(private val context: Context, workerParameters: WorkerParam
        val rootPath = context.getExternalFilesDir(null)?.absolutePath
         val file = File(rootPath, fileName)
         URL(imageUrl).openStream().use { input->
+
             FileOutputStream(file).use { output ->
                 input.copyTo(output)
             }

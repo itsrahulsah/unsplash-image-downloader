@@ -1,11 +1,9 @@
 package com.sample.hackitdemo
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -19,7 +17,6 @@ import com.sample.hackitdemo.databinding.ActivityMainBinding
 import com.sample.hackitdemo.network.models.Image
 import com.sample.hackitdemo.workmanager.DownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -35,7 +32,7 @@ class MainActivity : AppCompatActivity() {
             startDownloadingWallpaper(image)
         }
         binding.recyclerview.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
+            layoutManager = StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL)
             setHasFixedSize(true)
         }
         binding.recyclerview.adapter = adapter
@@ -70,7 +67,6 @@ class MainActivity : AppCompatActivity() {
             ExistingWorkPolicy.KEEP,
             downloadWorker
         )
-
         workManager.getWorkInfoByIdLiveData(downloadWorker.id)
             .observe(this){ info->
                 info?.let {

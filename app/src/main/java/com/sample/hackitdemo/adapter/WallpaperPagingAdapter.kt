@@ -12,24 +12,21 @@ import com.sample.hackitdemo.network.models.Image
 
 class WallpaperPagingAdapter(private val download:(Image) -> Unit):PagingDataAdapter<Image,WallpaperPagingAdapter.ViewHolder>(ImageDiffCallBack) {
 
-    class ViewHolder(private val binding:WallpaperItemLayoutBinding):RecyclerView.ViewHolder(binding.root){
-        fun bind(image: Image?, download:(Image) -> Unit){
+    class ViewHolder(val binding:WallpaperItemLayoutBinding):RecyclerView.ViewHolder(binding.root)
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        with(holder) {
+            val image = getItem(position)
             binding.image.load(data = image?.urls?.small, builder = { placeholder(R.drawable.image_placeholder)})
             if (image != null) {
                 binding.tvDiscription.text = image.description
-                binding.buttonLike.isSelected = image.isLiked
+                binding.buttonLike.isChecked = image.isLiked
                 binding.buttonDownload.setOnClickListener {
                     download.invoke(image)
                 }
-                binding.buttonLike.setOnCheckedChangeListener { _, isChecked -> image.isLiked = isChecked  }
+                binding.buttonLike.setOnClickListener{  image.isLiked = binding.buttonLike.isChecked  }
             }
-
         }
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position),download)
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
